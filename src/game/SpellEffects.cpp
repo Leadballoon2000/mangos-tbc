@@ -5489,6 +5489,32 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     }
                     return;
                 }
+                case 36310:                                 // Rina's Diminution Powder for quest 10506 A Dire Situation
+                {
+                    if (!unitTarget || !unitTarget->isAlive() || unitTarget->GetTypeId() != TYPEID_UNIT)
+                        return;
+
+                    Creature* creatureTarget = (Creature*)unitTarget;
+                    Player* player = (Player*)m_caster;
+                    if (creatureTarget->GetCreatureInfo()->Entry != 20058) // Ensure the item is being used on a Bloodmaul Dire Wolf
+                        return;
+
+                    // Check that the mob isn't already effcted by the quest item
+                    if (creatureTarget->HasAura(36310, EFFECT_INDEX_0))
+                        return;
+
+                    creatureTarget->SendMeleeAttackStop(player);
+                    creatureTarget->CombatStop(true);
+
+                    player->CombatStop(); // Player will be targeting quest mob to have cast item on it
+                    creatureTarget->SetFactionTemporary(35, TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_TOGGLE_NON_ATTACKABLE | TEMPFACTION_TOGGLE_PASSIVE | TEMPFACTION_TOGGLE_OOC_NOT_ATTACK);
+                    creatureTarget->ForcedDespawn(MINUTE * IN_MILLISECONDS);
+
+                    // Give quest credit
+                    player->KilledMonsterCredit(21176); // NPC 21176 is the quest 'trigger' wolf
+
+                    return;
+                }
                 case 37431:                                 // Spout
                 {
                     if (!unitTarget)
